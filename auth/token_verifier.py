@@ -1,6 +1,6 @@
 
 from fastapi import Request, HTTPException, status
-from jose import jwt
+import jwt
 import os
 from dotenv import load_dotenv
 
