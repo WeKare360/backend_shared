@@ -1,1 +1,0 @@
-"""WeKare Shared Infrastructure Components"""
