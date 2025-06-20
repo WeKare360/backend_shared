@@ -9,11 +9,7 @@ description = "WeKare Shared Infrastructure Components"
 authors = ["WeKare Team <dev@wekare.com>"]
 readme = "README.md"
 packages = [
-    {include = "config"},
-    {include = "auth"},
-    {include = "database"},
-    {include = "app"},
-    {include = "scripts"}
+    {include = "shared"}
 ]
 
 [tool.poetry.dependencies]
