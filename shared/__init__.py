@@ -1,1 +1,1 @@
-"""WeKare Shared Infrastructure Components"""`n
+"""WeKare Shared Infrastructure Components"""
