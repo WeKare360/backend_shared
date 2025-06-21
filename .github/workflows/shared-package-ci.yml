@@ -145,14 +145,11 @@ jobs:
     - name: 📋 Package info
       run: |
         echo "📋 Package Information:"
-        poetry run python -c "
-        import tomli
-        with open('pyproject.toml', 'rb') as f:
-            data = tomli.load(f)
-        print(f'📦 Package: {data[\"tool\"][\"poetry\"][\"name\"]}')
-        print(f'🏷️ Version: {data[\"tool\"][\"poetry\"][\"version\"]}')
-        print(f'📝 Description: {data[\"tool\"][\"poetry\"][\"description\"]}')
-        "
+        echo "📦 Package: wekare-shared"
+        echo "🏷️ Version: $(poetry version --short)"
+        echo "📝 Description: WeKare Shared Infrastructure Components"
+        echo "📊 Dependencies:"
+        poetry show --tree
     
     - name: 🔍 Validate package
       run: |
