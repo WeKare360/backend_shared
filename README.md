@@ -48,6 +48,29 @@ database = get_database()
 
 The new flexible configuration system supports multiple initialization methods and doesn't require external files:
 
+#### Environment Files
+
+The package includes sample environment files for different scenarios:
+
+- **`.env.development`** - Local development with external services
+- **`.env.testing`** - Testing environment with test databases
+- **`.env.production`** - Production environment with security guidelines
+- **`.env.docker`** - Docker Compose setup with all services
+- **`.env.ci`** - CI/CD pipelines with GitHub Actions examples
+
+Copy the appropriate template from the `examples/` directory to your service root:
+
+```bash
+# For development
+cp examples/.env.development .env
+
+# For testing
+cp examples/.env.testing .env
+
+# For production (customize with real values)
+cp examples/.env.production .env
+```
+
 #### Method 1: Environment Variables (Recommended)
 ```python
 from shared.config.base_config import SharedInfrastructureConfig
@@ -113,7 +136,18 @@ set_global_config(config)
 config = get_shared_config()
 ```
 
-#### S3 Configuration Environment Variables
+#### Environment Variable Reference
+
+##### Database Configuration
+```bash
+DATABASE_URL=postgresql+asyncpg://user:pass@localhost:5432/db
+SYNC_DATABASE_URL=postgresql://user:pass@localhost:5432/db
+DB_ECHO=false
+DB_POOL_SIZE=10
+DB_MAX_OVERFLOW=20
+```
+
+##### AWS S3 Configuration
 ```bash
 # Required
 AWS_S3_BUCKET_NAME=your-bucket-name
@@ -125,6 +159,88 @@ AWS_SECRET_ACCESS_KEY=your-secret-key      # Or use IAM roles
 AWS_S3_ENDPOINT_URL=http://localhost:9000  # For local testing (MinIO/LocalStack)
 AWS_S3_USE_SSL=true                        # Default: true
 AWS_S3_SIGNATURE_VERSION=s3v4              # Default: s3v4
+```
+
+##### Security & Authentication
+```bash
+JWT_SECRET=your-jwt-secret-key
+JWT_ALGORITHM=HS256
+JWT_EXPIRE_MINUTES=30
+MASTER_API_KEY=your-master-api-key
+```
+
+##### Environment Detection
+```bash
+ENVIRONMENT=development  # development, testing, production
+DEBUG=true               # Enable debug mode
+LOG_LEVEL=DEBUG         # DEBUG, INFO, WARNING, ERROR
+```
+
+#### Using Environment Files in Your Application
+
+```python
+# Load environment variables from .env file
+from dotenv import load_dotenv
+load_dotenv()
+
+# Or specify a custom file
+load_dotenv(".env.development")
+
+# Configuration will automatically use environment variables
+from shared.config.base_config import SharedInfrastructureConfig
+config = SharedInfrastructureConfig()
+```
+
+#### Docker Compose Example
+
+Using the `.env.docker` template:
+
+```yaml
+# docker-compose.yml
+version: '3.8'
+services:
+  app:
+    build: .
+    env_file:
+      - .env.docker
+    depends_on:
+      - postgres
+      - minio
+  
+  postgres:
+    image: postgres:15
+    env_file:
+      - .env.docker
+    ports:
+      - "5432:5432"
+  
+  minio:
+    image: minio/minio
+    env_file:
+      - .env.docker
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+```
+
+#### CI/CD Integration
+
+For GitHub Actions (using `.env.ci`):
+
+```yaml
+# .github/workflows/test.yml
+name: Test
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:5432/test
+      AWS_S3_BUCKET_NAME: test-bucket
+      AWS_ACCESS_KEY_ID: test-key
+      AWS_SECRET_ACCESS_KEY: test-secret
+      AWS_S3_ENDPOINT_URL: http://localhost:9000
+    # ... rest of workflow
 ```
 
 ### Authentication
@@ -190,6 +306,15 @@ shared/
 ├── app/                # Shared FastAPI components
 │   ├── domain/         # Shared domain entities
 │   └── infra/          # Infrastructure components
+├── examples/           # Configuration examples and templates
+│   ├── .env.development    # Development environment template
+│   ├── .env.testing       # Testing environment template
+│   ├── .env.production    # Production environment template
+│   ├── .env.docker        # Docker Compose environment template
+│   ├── .env.ci           # CI/CD environment template
+│   ├── configuration_examples.py  # Configuration usage examples
+│   ├── environment_example.py     # Environment testing script
+│   └── ENVIRONMENT_CONFIGURATION.md  # Detailed environment guide
 ├── tests/              # Shared test utilities
 └── scripts/            # Shared utility scripts
 ```
