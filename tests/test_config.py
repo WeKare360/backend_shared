@@ -62,11 +62,16 @@ class TestSharedInfrastructureConfig:
     @patch('pathlib.Path.exists')
     @patch('shared.config.base_config.load_dotenv')
     def test_env_file_loading(self, mock_load_dotenv, mock_exists):
-        """Test that .env files are loaded correctly"""
+        """Test that legacy .env files are loaded when explicitly requested"""
         # Mock that both env files exist
         mock_exists.return_value = True
         
+        # Test that regular config doesn't load legacy files by default
         config = SharedInfrastructureConfig()
+        assert mock_load_dotenv.call_count == 0
+        
+        # Test that legacy config loader works
+        legacy_config = SharedInfrastructureConfig.with_legacy_files()
         
         # Verify load_dotenv was called for both files
         assert mock_load_dotenv.call_count == 2
@@ -245,12 +250,19 @@ class TestGetSharedConfig:
     
     def test_shared_config_module_variable(self):
         """Test that the module-level shared_config variable works"""
-        from shared.config.base_config import shared_config
+        from shared.config.base_config import shared_config, reset_global_config
         
         assert isinstance(shared_config, SharedInfrastructureConfig)
         
-        # Should be the same as get_shared_config()
-        assert shared_config is get_shared_config()
+        # Reset global config to ensure clean state
+        reset_global_config()
+        
+        # After reset, get_shared_config() creates a new instance
+        global_config = get_shared_config()
+        assert isinstance(global_config, SharedInfrastructureConfig)
+        
+        # The module-level shared_config is a separate instance for backward compatibility
+        assert shared_config is not global_config
 
 
 class TestConfigurationIntegration:
